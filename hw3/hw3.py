@@ -23,6 +23,8 @@ class Cell:
         self.E = True
         self.S = True
         self.W = True
+        self.walls = [self.N, self.E, self.S, self.W]
+        self.visited = False
 
     def remove_wall(self, direction):
         """
@@ -67,11 +69,20 @@ class Cell:
         Direction is one of these strings: 'N', 'E', 'S', 'W'
         """
         return getattr(self, direction.upper())
+    def __repr__(self):
+        s = ''
+        if self.W:
+            s += '|'
+        if self.S:
+            s += '_'
+        if self.E:
+            s += '|'
+        return s
+
 
 # Global variables for the maze and its size
 size_x = size_y = 32
 maze = [[Cell(x, y) for y in range(size_y)] for x in range(size_x)]
-
 
 def build_maze():
     """
@@ -87,8 +98,42 @@ def build_maze():
     cells (walls) to create a perfect maze.
     When the function is invoked all cells have all their four walls standing.
     """
-    pass
+    global maze
+    wall_list = []
+    import random
 
+    rand_x = random.randint(0, len(maze[0]) - 1)
+    rand_y = random.randint(0, len(maze) - 1)
+    rand_cell = maze[rand_y][rand_x]
+    rand_cell.visited = True
+    
+    def append_wall_neighbors(cell, lst):
+        
+        if cell.W:
+            lst.append((rand_cell.x, rand_cell.y, 'W'))
+        if cell.N:
+            lst.append((rand_cell.x, rand_cell.y, 'N'))
+        if cell.E:
+            lst.append((rand_cell.x, rand_cell.y, 'E'))
+        if cell.S:
+            lst.append((rand_cell.x, rand_cell.y, 'S'))
+    
+    wall_list = []
+    append_wall_neighbors(rand_cell, wall_list)
+    while wall_list:
+        print(wall_list)
+        rand_index = random.randint(0, len(wall_list) - 1)
+        x, y, direction = wall_list.pop(rand_index)
+        delta = (1 if direction == 'E' else -1 if direction == 'W' else 0,
+                 1 if direction == 'N' else -1 if direction == 'S' else 0)
+        neighbor = maze[(y + delta[1]) % size_y][(x + delta[0]) % size_x]
+        if not neighbor.visited:
+            try:
+                maze[y][x].remove_wall(direction)
+            except:
+                pass
+            neighbor.visited = True
+            append_wall_neighbors(neighbor, wall_list)
 
 def find_path(start, end):
     """
